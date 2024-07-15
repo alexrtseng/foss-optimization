@@ -11,7 +11,8 @@ class BatteryOptimizer:
         pred_net_load,
         duration,
         batt_price_per_kWh,
-        import_tariff,
+        import_tariff,  # array of import tariffs for each hour
+        batt_life, # Battery life in years
         soc_min,
         soc_max,
         charge_efficiency,
@@ -25,6 +26,7 @@ class BatteryOptimizer:
         self.duration = duration
         self.batt_price_per_kWh = batt_price_per_kWh
         self.import_tariff = import_tariff
+        self.batt_life = batt_life
         self.soc_min = soc_min
         self.soc_max = soc_max
         self.charge_efficiency = charge_efficiency

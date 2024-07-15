@@ -25,6 +25,7 @@ class ChargeOptimizer(BatteryOptimizer):
             duration,
             0,
             0,
+            0,
             soc_min,
             soc_max,
             charge_efficiency,
