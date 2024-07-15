@@ -34,6 +34,7 @@ class BatteryOptimizer:
         self.max_charge_rate = max_charge_rate
         self.max_discharge_rate = max_discharge_rate
         self.result = None
+        self.x0 = None # Child classes should set this value
 
     def get_objective(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -54,7 +55,7 @@ class BatteryOptimizer:
                     (
                         (charge_vals[t] * self.charge_efficiency)
                         if charge_vals[t] > 0
-                        else charge_vals[t]
+                        else (charge_vals[t] / self.discharge_efficiency)
                     )
                 )
                 - (self.self_discharge * soc[t])
@@ -64,16 +65,14 @@ class BatteryOptimizer:
 
     # Perform the optimization; duration is optimized days (in days)
     def local_optimize(self, method: str = "SLSQP"):
-        x0 = np.zeros(self.pred_net_load.shape[0] + 1)
         bounds = self.get_bounds()
         result = spo.minimize(
             self.get_objective(),
-            x0,
+            self.x0,
             bounds=bounds,
             method=method,
             constraints=self.get_constraints(),
             options={"maxiter": 4000, "disp": True},
-            workers=-1,
         )
         self.result = result
         return result
@@ -92,10 +91,3 @@ class BatteryOptimizer:
         self.result = result
         return result
     
-    def get_result(self):
-        return self.result
-    
-    def graph_result(self):
-        plt.plot(self.result.x)
-        plt.plot(self.pred_net_load)
-        plt.show()

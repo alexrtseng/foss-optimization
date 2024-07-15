@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize as spo
 
-from .capacity_optimizer import BatteryOptimizer
+from battery_optimizer import BatteryOptimizer
 
 
 # Class for optimizer without cost consideration; just battery control
@@ -9,8 +9,7 @@ class ChargeOptimizer(BatteryOptimizer):
     def __init__(
         self,
         pred_net_load,
-        duration,
-        import_tariff,
+        duration,  # Duration of time (in days) the alg. is optimizing for
         soc_min,
         soc_max,
         charge_efficiency,
@@ -21,12 +20,11 @@ class ChargeOptimizer(BatteryOptimizer):
         max_discharge_rate,
         batt_capacity,
     ):
-        self.batt_capacity = batt_capacity
         super().__init__(
             pred_net_load,
             duration,
             0,
-            import_tariff,
+            0,
             soc_min,
             soc_max,
             charge_efficiency,
@@ -36,6 +34,9 @@ class ChargeOptimizer(BatteryOptimizer):
             max_charge_rate,
             max_discharge_rate,
         )
+        self.batt_capacity = batt_capacity
+        self.x0 = np.zeros(pred_net_load.shape[0])
+
 
     def get_objective(self):
 
@@ -45,7 +46,7 @@ class ChargeOptimizer(BatteryOptimizer):
                 sum += max(
                     0,
                     (
-                        (x[i] * self.batt_capacity * self.discharge_efficiency)
+                        (x[i] * self.batt_capacity)
                         + self.pred_net_load[i]
                     ),
                 )
