@@ -48,7 +48,7 @@ class ChargeOptimizer(BatteryOptimizer):
                     0,
                     (
                         (x[i] * self.batt_capacity)
-                        + self.pred_net_load[i]
+                        + self.pred_net_load.iloc[i]
                     ),
                 )
             return sum

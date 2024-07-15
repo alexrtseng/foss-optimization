@@ -37,6 +37,7 @@ class PriceOptimizer(BatteryOptimizer):
             max_discharge_rate,
         )
         self.x0 = np.zeros(pred_net_load.shape[0] + 1)
+        self.x0[-1] = 2
 
     def get_objective(self):
         def objective(x):
@@ -49,7 +50,7 @@ class PriceOptimizer(BatteryOptimizer):
             sum = 0
             for i in range(x.shape[0] - 1):
                 # Assuming no remuneration
-                energy = max(0, x[i] * x[-1] + self.pred_net_load[i])
+                energy = max(0, (x[i] * x[-1] + self.pred_net_load.iloc[i]))
                 sum += energy * self.import_tariff[i]
             return sum + batt_price_for_duration
 
@@ -61,12 +62,13 @@ class PriceOptimizer(BatteryOptimizer):
                 lambda x: self.calc_soc(x[:-1]), self.soc_min, self.soc_max
             )
         ]
-    
+
     def get_bounds(self):
         max_discharge_percent = -1.0 * self.max_discharge_rate * self.timestep_size
         max_charge_percent = self.max_charge_rate * self.timestep_size
-        bounds = [(max_discharge_percent, max_charge_percent) for _ in range(self.pred_net_load.shape[0])]
+        bounds = [
+            (max_discharge_percent, max_charge_percent)
+            for _ in range(self.pred_net_load.shape[0])
+        ]
         bounds.append((0, 10000))
         return bounds
-
-    
