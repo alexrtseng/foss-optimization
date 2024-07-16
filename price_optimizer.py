@@ -79,7 +79,7 @@ class PriceOptimizer(BatteryOptimizer):
         return bounds
 
     # Use bilevel optimization to optimize battery size; inner is charge optimizer outer is batt capacity
-    def bilevel_optimize(self, method: str = "SLSQP", inner_method = 'local_optimize'):
+    def bilevel_optimize(self, method: str = "BFGS", inner_method = 'local_optimize'):
         # Make ChargeOptimizer to function as inner optimizer
         charge_optimizer = ChargeOptimizer(
             self.pred_net_load,
@@ -117,8 +117,7 @@ class PriceOptimizer(BatteryOptimizer):
         # Outer optimization
         result = spo.minimize(
             objective,
-            [2],
-            bounds=[(0, 10000)],
+            np.array([2]),
             method=method,
             options={"maxiter": 1000, "disp": True, 'eps': 2},
         )
