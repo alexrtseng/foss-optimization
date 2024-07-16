@@ -79,7 +79,7 @@ class PriceOptimizer(BatteryOptimizer):
         return bounds
 
     # Use bilevel optimization to optimize battery size; inner is charge optimizer outer is batt capacity
-    def bilevel_optimize(self, method: str = "SLSQP"):
+    def bilevel_optimize(self, method: str = "SLSQP", inner_method = 'local_optimize'):
         # Make ChargeOptimizer to function as inner optimizer
         charge_optimizer = ChargeOptimizer(
             self.pred_net_load,
@@ -103,8 +103,14 @@ class PriceOptimizer(BatteryOptimizer):
                 * (self.duration / (365 * self.batt_life))
             )
             charge_optimizer.set_batt_capacity(x[0])
-            charge_optimizer.local_optimize(disp=False, tol=1e-6)
-            val = charge_optimizer.result.fun + batt_price_for_duration
+            if inner_method == 'local_optimize':
+                charge_optimizer.local_optimize(disp=False, tol=1e-6)
+            elif inner_method == 'l_bfgs_b_optimize':
+                charge_optimizer.l_bfgs_b_optimize(disp=False)
+            else:
+                raise ValueError('Invalid inner method')
+            
+            val = charge_optimizer.final_objective() + batt_price_for_duration
             print(f'Iteration of battery capacity: {x[0]}. Objective value: {val}')
             return val
 
@@ -124,20 +130,21 @@ class PriceOptimizer(BatteryOptimizer):
         self.result = result
         return result
 
-    def plot_results(self, x_vals):
+    def plot_results(self, x_vals, aggregate=True):
         soc = self.calc_soc(self.result.x[:-1]) * self.result.x[-1]
+        if aggregate:
+            aggregate = [0]
+            for num in self.pred_net_load:
+                aggregate.append(aggregate[-1] + num)
 
-        aggregate = [0]
-        for num in self.pred_net_load:
-            aggregate.append(aggregate[-1] + num)
-
-        plt.plot(
-            x_vals,
-            aggregate[1:],
-            label="Aggregate Net Load",
-            linestyle="dotted",
-            color="grey",
-        )
+            plt.plot(
+                x_vals,
+                aggregate[1:],
+                label="Aggregate Net Load",
+                linestyle="dotted",
+                color="grey",
+            )
+            
         plt.plot(
             x_vals,
             self.pred_net_load,
@@ -152,3 +159,4 @@ class PriceOptimizer(BatteryOptimizer):
         plt.legend(loc="upper left")
         plt.xticks(rotation=45)
         plt.show()
+

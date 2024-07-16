@@ -55,6 +55,19 @@ class BatteryOptimizer:
 
     def get_bounds(self):
         raise NotImplementedError("Subclasses must implement this method")
+    
+    def set_new_input(self, pred_net_load, duration, import_tariff, timestep_size):
+        self.pred_net_load = pred_net_load
+        self.timestep_size = timestep_size
+        self.duration = duration
+        self.x0 = np.zeros(pred_net_load.shape[0])
+        if import_tariff.shape[0] == 24:
+            steps_in_hour = (1.0 / self.timestep_size)
+            assert steps_in_hour.is_integer()
+            day_array = np.repeat(import_tariff, steps_in_hour)
+            self.import_tariff = np.tile(day_array, duration)
+        else:
+            self.import_tariff = import_tariff
 
     def calc_soc(self, charge_vals):
         soc = np.zeros(charge_vals.shape[0] + 1)
@@ -105,3 +118,8 @@ class BatteryOptimizer:
         )
         self.result = result
         return result
+    
+    # Get the final objective value (can be used to comare l_bfgs_b and SLSQP)
+    def final_objective(self):
+        objective_func = self.get_objective()
+        return float(objective_func(self.result.x))
