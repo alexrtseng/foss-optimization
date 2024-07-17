@@ -13,6 +13,7 @@ class BatteryOptimizer:
         duration,
         batt_price_per_kWh,
         import_tariff: np.array,  # array of import tariffs; can be for each point or each hour
+        export_tariff: np.array,
         batt_life,  # Battery life in years
         soc_min,
         soc_max,
@@ -45,6 +46,13 @@ class BatteryOptimizer:
             self.import_tariff = np.tile(day_array, duration)
         else:
             self.import_tariff = import_tariff
+        if export_tariff.shape[0] == 24:
+            steps_in_hour = 1.0 / timestep_size
+            assert steps_in_hour.is_integer()
+            day_array = np.repeat(export_tariff, steps_in_hour)
+            self.export_tariff = np.tile(day_array, duration)
+        else:
+            self.export_tariff = export_tariff
 
     def get_objective(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -58,7 +66,7 @@ class BatteryOptimizer:
     def get_x0(self):
         raise NotImplementedError("Subclasses must implement this method")
 
-    def set_new_input(self, pred_net_load, duration, import_tariff, timestep_size):
+    def set_new_input(self, pred_net_load, duration, import_tariff, export_tariff, timestep_size):
         self.pred_net_load = pred_net_load
         self.timestep_size = timestep_size
         self.duration = duration
@@ -70,6 +78,13 @@ class BatteryOptimizer:
             self.import_tariff = np.tile(day_array, duration)
         else:
             self.import_tariff = import_tariff
+        if export_tariff.shape[0] == 24:
+            steps_in_hour = 1.0 / timestep_size
+            assert steps_in_hour.is_integer()
+            day_array = np.repeat(export_tariff, steps_in_hour)
+            self.export_tariff = np.tile(day_array, duration)
+        else:
+            self.export_tariff = export_tariff
 
     def calc_soc(self, charge_vals):
         soc = np.zeros(charge_vals.shape[0] + 1)
@@ -84,7 +99,7 @@ class BatteryOptimizer:
                         else (charge_vals[t] / self.discharge_efficiency)
                     )
                 )
-                - (self.self_discharge * soc[t])
+                - (self.self_discharge * soc[t] / (24 / self.timestep_size))
             )
 
         return soc

@@ -3,8 +3,6 @@ import scipy.optimize as spo
 from battery_optimizer import BatteryOptimizer
 import matplotlib.pyplot as plt
 from charge_optimizer import ChargeOptimizer
-import charge_optimizer
-
 
 # Child opimizer class for optimizing battery size for most cost-effective operation
 class PriceOptimizer(BatteryOptimizer):
@@ -14,6 +12,7 @@ class PriceOptimizer(BatteryOptimizer):
         duration,
         batt_price_per_kWh,
         import_tariff,
+        export_tariff,
         batt_life,
         soc_min,
         soc_max,
@@ -29,6 +28,7 @@ class PriceOptimizer(BatteryOptimizer):
             duration,
             batt_price_per_kWh,
             import_tariff,
+            export_tariff,
             batt_life,
             soc_min,
             soc_max,
@@ -54,9 +54,11 @@ class PriceOptimizer(BatteryOptimizer):
             )
             sum = 0
             for i in range(x.shape[0] - 1):
-                # Assuming no remuneration
-                energy = max(0, (x[i] * x[-1] + self.pred_net_load.iloc[i]))
-                sum += energy * self.import_tariff[i]
+                net_energy = (x[i] * x[-1]) + self.pred_net_load.iloc[i]
+                if net_energy >= 0:
+                    sum += (net_energy * self.import_tariff[i])  
+                else: 
+                    sum += net_energy * self.export_tariff[i]
             return sum + batt_price_for_duration
 
         return objective
@@ -87,19 +89,22 @@ class PriceOptimizer(BatteryOptimizer):
     def bilevel_optimize(self, method: str = "BFGS", inner_method = 'local_optimize'):
         # Make ChargeOptimizer to function as inner optimizer
         charge_optimizer = ChargeOptimizer(
-            self.pred_net_load,
-            self.duration,
-            self.import_tariff,
-            self.soc_min,
-            self.soc_max,
-            self.charge_efficiency,
-            self.discharge_efficiency,
-            self.self_discharge,
-            self.timestep_size,
-            self.max_charge_rate,
-            self.max_discharge_rate,
-            1,
+            pred_net_load=self.pred_net_load,
+            duration=self.duration,
+            import_tariff=self.import_tariff,
+            export_tariff=self.export_tariff,
+            soc_min=self.soc_min,
+            soc_max=self.soc_max,
+            charge_efficiency=self.charge_efficiency,
+            discharge_efficiency=self.discharge_efficiency,
+            self_dis=self.self_discharge,
+            timestep_size=self.timestep_size,
+            max_charge_rate=self.max_charge_rate,
+            max_discharge_rate=self.max_discharge_rate,
+            batt_capacity=0,
         )
+        # Used to prevent negative values with smoothed function
+        zero_fun = charge_optimizer.local_optimize(disp=False).fun
 
         def objective(x):
             batt_price_for_duration = (
@@ -108,16 +113,21 @@ class PriceOptimizer(BatteryOptimizer):
                 * (self.duration / (365 * self.batt_life))
             )
             charge_optimizer.set_batt_capacity(x[0])
+        
             if inner_method == 'local_optimize':
                 charge_optimizer.local_optimize(disp=False, tol=1e-6)
+                val = charge_optimizer.result.fun
             elif inner_method == 'l_bfgs_b_optimize':
                 charge_optimizer.l_bfgs_b_optimize(disp=False)
+                val = charge_optimizer.final_objective()
             else:
                 raise ValueError('Invalid inner method')
-            
-            val = charge_optimizer.final_objective() + batt_price_for_duration
-            print(f'Iteration of battery capacity: {x[0]}. Objective value: {val}')
-            return val
+            if x[-1] >= 0:
+                price = val + batt_price_for_duration
+            else:
+                price = zero_fun + (batt_price_for_duration * batt_price_for_duration)
+            print(f'Iteration of battery capacity: {x[0]}. Objective value: {price}')
+            return price
 
         # Outer optimization
         result = spo.minimize(

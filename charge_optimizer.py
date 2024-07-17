@@ -13,6 +13,7 @@ class ChargeOptimizer(BatteryOptimizer):
         pred_net_load,
         duration,  # Duration of time (in days) the alg. is optimizing for
         import_tariff: np.array,  # array of import tariffs for each hour
+        export_tariff: np.array,  # array of export tariffs for each hour
         soc_min,
         soc_max,
         charge_efficiency,
@@ -28,6 +29,7 @@ class ChargeOptimizer(BatteryOptimizer):
             duration,
             0,
             import_tariff,
+            export_tariff,
             0,
             soc_min,
             soc_max,
@@ -52,13 +54,11 @@ class ChargeOptimizer(BatteryOptimizer):
         def objective(x):
             sum = 0
             for i in range(x.shape[0]):
-                sum += max(
-                    0,
-                    (
-                        (x[i] * self.batt_capacity)
-                        + self.pred_net_load.iloc[i]
-                    ),
-                ) * self.import_tariff[i]
+                net_energy = (x[i] * self.batt_capacity) + self.pred_net_load.iloc[i]
+                if net_energy >= 0:
+                    sum += (net_energy * self.import_tariff[i])  
+                else: 
+                    sum += net_energy * self.export_tariff[i]
             return sum
         
         return objective
