@@ -60,6 +60,11 @@ class PriceOptimizer(BatteryOptimizer):
             return sum + batt_price_for_duration
 
         return objective
+    
+    def get_x0(self):
+        x0 = np.zeros(self.pred_net_load.shape[0] + 1)
+        x0[-1] = 2
+        return x0
 
     def get_constraints(self):
         return [

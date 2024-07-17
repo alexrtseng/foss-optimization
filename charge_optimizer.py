@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.optimize as spo
 import matplotlib.pyplot as plt
+import cvxpy as cp
 
 from battery_optimizer import BatteryOptimizer
 
@@ -42,6 +43,9 @@ class ChargeOptimizer(BatteryOptimizer):
 
     def set_batt_capacity(self, batt_capacity):
         self.batt_capacity = batt_capacity
+
+    def get_x0(self):
+        return np.zeros(self.pred_net_load.shape[0])
 
     def get_objective(self):
 
@@ -88,6 +92,40 @@ class ChargeOptimizer(BatteryOptimizer):
         )
         self.result = result
         return result
+    
+    def convex_optimize(self, batt_capacity):
+        rt_efficiency = self.charge_efficiency * self.discharge_efficiency
+
+        charge = cp.Variable(self.x0.shape[0])
+        discharge = cp.Variable(self.x0.shape[0])
+
+        # Penalty for charging and discharging at the same time
+        penalty = (cp.sum(charge) + cp.sum(discharge)) * 0.0001
+        objective = cp.Minimize(cp.sum(
+            cp.multiply(
+                (charge * batt_capacity) + self.pred_net_load, self.import_tariff)
+        ) + cp.sum(
+            cp.multiply(
+                (-1 * discharge * batt_capacity * rt_efficiency) + self.pred_net_load, self.import_tariff)
+        ) + penalty
+        )
+
+        constraints = [
+            charge >= 0,
+            discharge >= 0,
+            charge <= self.max_charge_rate * self.timestep_size,
+            discharge <= self.max_discharge_rate * self.timestep_size,
+            cp.cumsum(charge - discharge) <= batt_capacity * self.soc_max,
+            cp.cumsum(charge - discharge) >= batt_capacity * self.soc_min,
+        ]
+
+        prob = cp.Problem(objective, constraints)
+        prob.solve()  # Returns the optimal value.
+        print("status:", prob.status)
+        print("optimal value", prob.value)
+        print("optimal var", charge.value, discharge.value)
+        
+        return prob, charge, discharge
 
     def plot_results(self, x_vals):
         soc = self.calc_soc(self.result.x)
@@ -100,5 +138,3 @@ class ChargeOptimizer(BatteryOptimizer):
         plt.legend()
         plt.xticks(rotation=45)
         plt.show()
-
-    
