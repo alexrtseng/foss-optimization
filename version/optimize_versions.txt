@@ -70,3 +70,51 @@ Final objective value (price): 15.485237993154904
 Yearly savings: 864.6634944668422
 ________________________________________________________
 
+Version: 4
+Version notes:
+CPP tariff (Sample 5-8 $0.8; $0.3 otherwise) with no export remuneration; Real bat price (1000)
+batt_price_per_kWh: 1000
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 103.01386499404907s
+Optimization Duration: Week
+Price without battery: 32.113382117517254
+Optimal battery capacity: 2.9527484281383463kWh
+Final objective value (price): 25.503417235296638
+
+Yearly savings: 343.7181738754721
+________________________________________________________
+
+Version: 5
+Version notes:
+Fixed tariff ($0.37) for no battery cost
+batt_price_per_kWh: 0
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 64.86081600189209s
+Optimization Duration: Week
+Price without battery: 30.442787417779513
+Optimal battery capacity: 10.928098123963398kWh
+Final objective value (price): 16.927320455985914
+
+Yearly savings: 702.8042820132672
+________________________________________________________
+
