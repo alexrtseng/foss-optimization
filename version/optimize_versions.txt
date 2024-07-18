@@ -1,0 +1,72 @@
+Version: 1
+Version notes:
+Fixed price tariff ($0.37) with no export remuneration
+batt_price_per_kWh: 127
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 63.22979140281677s
+Optimization Duration: Week
+Price without battery: 30.442787417779513
+Optimal battery capacity: 7.323710374116133kWh
+Final objective value (price): 18.68247615590798
+
+Yearly savings: 611.5361856173197
+________________________________________________________
+
+Version: 2
+Version notes:
+TOU tariff (Australia 2017 sample) with no export remuneration
+batt_price_per_kWh: 127
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 378.0540668964386s
+Optimization Duration: Week
+Price without battery: 18.03095287829833
+Optimal battery capacity: 7.0554547818408375kWh
+Final objective value (price): 7.689928126039829
+
+Yearly savings: 537.733287117442
+________________________________________________________
+
+Version: 3
+Version notes:
+CPP tariff (Sample 5-8 $0.8; $0.3 otherwise) with no export remuneration
+batt_price_per_kWh: 127
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 147.34379124641418s
+Optimization Duration: Week
+Price without battery: 32.113382117517254
+Optimal battery capacity: 7.279513754593473kWh
+Final objective value (price): 15.485237993154904
+
+Yearly savings: 864.6634944668422
+________________________________________________________
+

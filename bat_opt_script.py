@@ -1,6 +1,7 @@
 from price_optimizer import PriceOptimizer
 
 import pandas as pd
+import numpy as np
 import time
 import matplotlib.pyplot as plt
 
@@ -29,14 +30,20 @@ def optimize(week=True, **kwargs):
     export_tariff = export_tariff["export_tariff"].values
 
     # Load battery parameters
-    batt_price_per_kWh = 127
-    batt_life = 10
-    soc_min = 0.2
-    soc_max = 0.8
-    charge_efficiency = 0.95
-    discharge_efficiency = 0.95
-    self_dis = 0.01
-    timestep_size = 0.25
+    if 'batt_price_per_kWh' in kwargs:
+        batt_price_per_kWh = kwargs['batt_price_per_kWh']
+    else:
+        batt_price_per_kWh = 127
+    if 'batt_life' in kwargs:
+        batt_life = kwargs['batt_life']
+    else:
+        batt_life = 10
+    soc_min = 0.1
+    soc_max = 0.9
+    charge_efficiency = 0.98
+    discharge_efficiency = 0.98
+    self_dis = 0.02
+    timestep_size = 1
     max_charge_rate = 0.5
     max_discharge_rate = 0.5
 
@@ -63,6 +70,13 @@ def optimize(week=True, **kwargs):
     result = price_optimizer.local_optimize()
     end_time = time.time()
     execution_time = end_time - start_time
+
+    # Calculate price without battery
+    no_bat_price = price_optimizer.get_objective()(np.zeros(price_optimizer.pred_net_load.shape[0] + 1))
+    if week:
+        yearly_savings = (no_bat_price - result.fun) * 52
+    else:
+        yearly_savings = (no_bat_price - result.fun)
 
     # Print results
     print(result)
@@ -98,9 +112,13 @@ def optimize(week=True, **kwargs):
         file.write(f"max_charge_rate: {max_charge_rate}\n")
         file.write(f"max_discharge_rate: {max_discharge_rate}\n\n")
         file.write("Results:\n")
-        file.write(f"Execution time: {execution_time} s\n")
-        file.write(f"Optimal battery capacity: {result.x[-1]} kWh\n")
+        file.write(f"Execution time: {execution_time}s\n")
+        file.write(f"Optimization Duration: {'Week' if week else 'Year'}\n")
+        file.write(f"Price without battery: {no_bat_price}\n")
+        file.write(f"Optimal battery capacity: {result.x[-1]}kWh\n")
         file.write(f"Final objective value (price): {result.fun}\n\n")
+        file.write(f"Yearly savings: {yearly_savings}\n")
+        file.write("________________________________________________________\n\n")
 
     # Graph result for random day, week, month
     result_df.plot(y=['NetLoad', 'OptimalSOC'], title='Example Week Optimal Charge', figsize=(12, 6))
@@ -108,5 +126,5 @@ def optimize(week=True, **kwargs):
     
 
 if __name__ == "__main__":
-    version_notes = 'Fixed rate tariff without export remuneration.'
-    optimize(week=True, version='test')
+    version_notes = 'CPP tariff (Sample 5-8 $0.8; $0.3 otherwise) with no export remuneration'
+    optimize(week=True, version_notes=version_notes)
