@@ -33,7 +33,7 @@ def optimize(week=True, **kwargs):
     if 'batt_price_per_kWh' in kwargs:
         batt_price_per_kWh = kwargs['batt_price_per_kWh']
     else:
-        batt_price_per_kWh = 1000
+        batt_price_per_kWh = 1300
     if 'batt_life' in kwargs:
         batt_life = kwargs['batt_life']
     else:
@@ -126,5 +126,5 @@ def optimize(week=True, **kwargs):
     
 
 if __name__ == "__main__":
-    version_notes = 'Fixed tariff ($0.37) for no battery cost'
-    optimize(week=True, version_notes=version_notes, batt_price_per_kWh=0)
+    version_notes = 'Realistic Bat price CPP ($0.8 5-8pm; $0.2 otherwise) no export remuneration'
+    optimize(week=True, version_notes=version_notes, batt_price_per_kWh=1300)

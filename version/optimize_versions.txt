@@ -72,7 +72,8 @@ ________________________________________________________
 
 Version: 4
 Version notes:
-CPP tariff (Sample 5-8 $0.8; $0.3 otherwise) with no export remuneration; Real bat price (1000)
+CPP tariff (Sample 5-8 $0.8; $0.3 otherwise) with no export remuneration; Real bat price (1000) 
+A more accurate real battery price version of this test is below in version 8
 batt_price_per_kWh: 1000
 batt_life: 10
 soc_min: 0.1
@@ -116,5 +117,77 @@ Optimal battery capacity: 10.928098123963398kWh
 Final objective value (price): 16.927320455985914
 
 Yearly savings: 702.8042820132672
+________________________________________________________
+
+Version: 6
+Version notes:
+Realistic Bat price Fixed Tariff (0.37) no export remuneration
+batt_price_per_kWh: 1300
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 0.27048587799072266s
+Optimization Duration: Week
+Price without battery: 30.442787417779513
+Optimal battery capacity: 0.0kWh
+Final objective value (price): 30.442787417779513
+
+Yearly savings: 0.0
+________________________________________________________
+
+Version: 7
+Version notes:
+Realistic Bat price TOU (Australia 2017 example) no export remuneration
+batt_price_per_kWh: 1300
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 35.576205015182495s
+Optimization Duration: Week
+Price without battery: 18.03095287829833
+Optimal battery capacity: 2.6630858614479425kWh
+Final objective value (price): 16.844254006736293
+
+Yearly savings: 61.7083413212259
+________________________________________________________
+
+Version: 8
+Version notes:
+Realistic Bat price CPP ($0.8 5-8pm; $0.2 otherwise) no export remuneration
+batt_price_per_kWh: 1300
+batt_life: 10
+soc_min: 0.1
+soc_max: 0.9
+charge_efficiency: 0.98
+discharge_efficiency: 0.98
+self_dis: 0.02
+timestep_size: 1
+max_charge_rate: 0.5
+max_discharge_rate: 0.5
+
+Results:
+Execution time: 88.51817083358765s
+Optimization Duration: Week
+Price without battery: 25.37160992792687
+Optimal battery capacity: 2.6895936599578985kWh
+Final objective value (price): 20.347501759358718
+
+Yearly savings: 261.25362476554386
 ________________________________________________________
 
