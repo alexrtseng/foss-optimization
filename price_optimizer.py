@@ -144,7 +144,7 @@ class PriceOptimizer(BatteryOptimizer):
         self.result = result
         return result
 
-    def plot_results(self, x_vals, aggregate=True):
+    def plot_results(self, x_vals, title, aggregate=True):
         soc = self.calc_soc(self.result.x[:-1]) * self.result.x[-1]
         if aggregate:
             aggregate = [0]
@@ -162,14 +162,14 @@ class PriceOptimizer(BatteryOptimizer):
         plt.plot(
             x_vals,
             self.pred_net_load,
-            label="Net Load",
+            label="Net Load (kW)",
             color="grey",
             linestyle="dashed",
         )
         plt.plot(x_vals, soc[1:], label="Battery SOC")
         plt.xlabel("Timestamp")
         plt.ylabel("Energy (kWh)")
-        plt.title("Net Load and SOC")
+        plt.title(title)
         plt.legend(loc="upper left")
         plt.xticks(rotation=45)
         plt.show()

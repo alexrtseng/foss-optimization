@@ -6,7 +6,7 @@ import time
 import matplotlib.pyplot as plt
 
 def optimize(week=True, **kwargs):
-    df = pd.read_csv('Data_Households_SmartPV.csv')
+    df = pd.read_csv('data/Data_Households_SmartPV.csv')
     df['Timestamp'] = pd.to_datetime(df['Timestamp'])
     
     if week:
